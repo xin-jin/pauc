@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import sys
 import getopt
@@ -13,11 +13,13 @@ def getint(a):
     return tmp
 
 
-def genGraph(n, low, high):
-    f = open('graph.in', 'w')
+def genGraph(n, low, high, filename):
+    f = open(filename, 'w')
 
+    f.write('%d\n' % n)         # write the number of nodes
+    
     for i in range(n):
-        for j in range(i+1, n):
+        for j in range(n):
             f.write('%d %d %d\n' % (i, j, random_integers(low, high)))
 
     f.close()
@@ -25,7 +27,7 @@ def genGraph(n, low, high):
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1: ], 'n:l:h:')
+        opts, args = getopt.getopt(sys.argv[1: ], 'n:l:h:f:')
     except getopt.GetoptError as err:
         print(err)
         sys.exit(2)
@@ -33,6 +35,7 @@ def main():
     low = 1
     high = 100
     n = 100
+    filename = 'graph.in'
 
     for o, a in opts:
         if o == '-n':
@@ -41,11 +44,13 @@ def main():
             low = getint(a)
         elif o == '-h':
             high = getint(a)
+        elif o == '-f':
+            filename = a
         else:
             print("Unknown options")
             sys.exit(2)
 
-    genGraph(n, low, high)
+    genGraph(n, low, high, filename)
 
 
 if __name__ == '__main__':
