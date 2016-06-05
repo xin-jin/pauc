@@ -1,6 +1,6 @@
 #include <getopt.h>
-#include "assignment.hpp"
-#include "payoff_mat.hpp"
+#include "include/assignment.hpp"
+#include "include/payoff_mat.hpp"
 
 struct Options {
     bool print_only = false;

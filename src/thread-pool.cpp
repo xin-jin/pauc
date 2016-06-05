@@ -5,7 +5,7 @@
  */
 
 #include <iostream>
-#include "thread-pool.hpp"
+#include "include/thread-pool.hpp"
 
 ThreadPool::ThreadPool(size_t numThreads) : kNumThreads(numThreads), jobs(numThreads),
                                             running(true), cvv(numThreads) {
