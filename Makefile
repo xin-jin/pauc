@@ -31,9 +31,5 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 .PHONEY: clean
 clean:
 		@$(rm) $(OBJECTS)
+		@$(rm) $(BINDIR)/$(TARGET)	
 	    @echo "Cleanup complete!"
-
-.PHONEY: remove
-remove: clean
-		@$(rm) $(BINDIR)/$(TARGET)
-	    @echo "Executable removed!"
