@@ -5,14 +5,16 @@
 #include <fstream>
 #include <vector>
 
-using IntT = int;
-using IdxT = int;
 using std::cout;
 using std::endl;
-using MatT = std::vector<std::vector<IntT>>;
+
 
 class PayoffMat {
 public:
+    using IntT = int;
+    using IdxT = int;
+    using MatT = std::vector<std::vector<IntT>>;
+
     PayoffMat(std::string filename) {
         std::ifstream infile(filename);
 

@@ -1,22 +1,26 @@
 #pragma once
 
 #include <limits>
+#include <cassert>
 #include <string>
 #include <vector>
 #include <fstream>
 #include <iostream>
 #include <stack>
 
-using PriceT = double;
-using IntT = int;
-using PVecT = std::vector<PriceT>;
-using IdxT = int;
 using std::cout;
 using std::endl;
-using MatT = std::vector<std::vector<IntT>>;
 
 class Assignment {
 public:
+    using PriceT = double;
+    using IntT = int;
+    using PVecT = std::vector<PriceT>;
+    using IdxT = int;
+    // first is item index, second is payoff
+    using EdgeT = std::pair<IdxT, IntT>;
+    using MatT = std::vector<std::vector<EdgeT>>;
+
     Assignment(std::string filename) {
         std::ifstream infile(filename);
 
@@ -27,16 +31,13 @@ public:
         assign_.resize(n_, -1);
         mat_.resize(n_);
         p_.resize(n_, 0);
-        for (auto& v : mat_) {
-            v.resize(n_, -1);
-        }
 
         while (infile >> i >> j >> w) {
-            mat_[i][j] = w;
+            mat_[i].push_back({ j, w });
         }
 
-        for (IdxT j = n_-1; j >= 0; --j) {
-            unassigned_.push(j);
+        for (IdxT i = n_-1; i >= 0; --i) {
+            unassigned_.push(i);
         }
 
         ep_ = 1.0/(n_+1);
@@ -44,18 +45,20 @@ public:
 
 
     void bid(IdxT i) {
-        PriceT m = mat_[i][0] - p_[0], m2 = m;
-        IdxT best_item = 0;
+        PriceT m = std::numeric_limits<PriceT>::min(), m2 = m;
+        IdxT best_item = -1;
 
-        for (IdxT j = 1; j != n_; ++j) {
-            if (mat_[i][j] - p_[j] > m) {
-                m = mat_[i][j];
-                best_item = j;
+        for (const EdgeT& edge : mat_[i]) {
+            PriceT net_payoff = edge.second - p_[edge.first];
+            if (net_payoff > m) {
+                m = net_payoff;
+                best_item = edge.first;
             }
             else {
-                m2 = std::max(mat_[i][j] - p_[j], m2);
+                m2 = std::max(net_payoff, m2);
             }
         }
+        assert(best_item >= 0);
 
         // update bid and reassign item
         IdxT previous_owner = belong_[best_item];
