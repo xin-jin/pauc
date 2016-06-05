@@ -23,8 +23,6 @@ void ThreadPool::schedule(const std::function<void(void)>& thunk, size_t worker_
 void ThreadPool::worker(size_t id) {
     std::unique_lock<std::mutex> lck(mt);
 
-
-
     while (true) {
         while (running && jobs[id].done)
             cvv[id].wait(lck);
@@ -37,7 +35,7 @@ void ThreadPool::worker(size_t id) {
         jobs[id].done = true;
 
         // notify wait()
-        cv_wait.notify_one();
+        cv_wait.notify_all();
     }
 }
 

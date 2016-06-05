@@ -85,15 +85,13 @@ public:
                 tmp_sr.best_item = edge.first;
                 tmp_sr.payoff = edge.second;
             }
-            else {
-                if (net_payoff > tmp_sr.m2) {
-                    tmp_sr.m2 = net_payoff;
-                    tmp_sr.second_item = edge.first;
-                    tmp_sr.second_payoff = edge.second;
-                }
+            else if (net_payoff > tmp_sr.m2) {
+                tmp_sr.m2 = net_payoff;
+                tmp_sr.second_item = edge.first;
+                tmp_sr.second_payoff = edge.second;
             }
         }
-		assert(tmp_sr.m >= tmp_sr.m2);
+        assert(tmp_sr.m >= tmp_sr.m2);
         assert(tmp_sr.best_item >= 0);
 
         mt_sr.lock();
@@ -119,7 +117,7 @@ public:
                 sr.second_payoff = tmp_sr.payoff;
             }
         }
-		assert(sr.m >= sr.m2);
+        assert(sr.m >= sr.m2);
         mt_sr.unlock();
     }
 
@@ -147,7 +145,6 @@ public:
     // }
 
     void bid(IdxT i, size_t sim_id) {
-        cout << i << " is going to bid" << endl;
         size_t p_size = (mat_[i].size()-1) / nblock_ + 1;  // partition size
         SearchResult sr;
         std::mutex mt_sr;
@@ -172,10 +169,9 @@ public:
             thpool_.wait(worker_id);
         }
 
-        // update bid and reassign item
+        // update price and reassign item
         mt_.lock();
         PriceT new_bid = p_[sr.best_item] + (sr.payoff - p_[sr.best_item]) - (sr.second_payoff - p_[sr.second_item]) + ep_;
-        cout << new_bid << " " << p_[sr.best_item] << endl;
         if (new_bid > p_[sr.best_item]) {
             IdxT previous_owner = belong_[sr.best_item];
             if (previous_owner != -1) {
@@ -186,9 +182,7 @@ public:
             assign_[i] = sr.best_item;
             belong_[sr.best_item] = i;
             payoff_[i] = sr.payoff;
-            p_[sr.best_item] += new_bid;
-
-            cout << i << " gets " << sr.best_item << ", and " << previous_owner << " is kicked " << unassigned_.empty() << endl;
+            p_[sr.best_item] = new_bid;
         }
         else {
             unassigned_.push(i);
