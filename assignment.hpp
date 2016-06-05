@@ -7,6 +7,9 @@
 #include <fstream>
 #include <iostream>
 #include <stack>
+#include <boost/asio/io_service.hpp>
+#include <boost/bind.hpp>
+#include <boost/thread/thread.hpp>
 
 using std::cout;
 using std::endl;
@@ -21,7 +24,19 @@ public:
     using EdgeT = std::pair<IdxT, IntT>;
     using MatT = std::vector<std::vector<EdgeT>>;
 
-    Assignment(std::string filename) {
+    struct SearchResult {
+        PriceT m;
+        PriceT m2;
+        IdxT best_item;
+
+        SearchResult() {
+            m = std::numeric_limits<PriceT>::min();
+            m2 = m;
+            best_item = -1;
+        }
+    };
+
+    Assignment(std::string filename, int nthreads = 1): nthreads_(nthreads), work_(ioService_) {
         std::ifstream infile(filename);
 
         IdxT i, j, w;
@@ -41,35 +56,49 @@ public:
         }
 
         ep_ = 1.0/(n_+1);
+
+        // initialize threads
+        for (int i = 0; i != nthreads_; ++i) {
+            thpool_.create_thread([this]{ ioService_.run(); });
+        }
     }
 
+    ~Assignment() {
+        ioService_.stop();
+        thpool_.join_all();
+    }
 
-    void bid(IdxT i) {
-        PriceT m = std::numeric_limits<PriceT>::min(), m2 = m;
-        IdxT best_item = -1;
-
-        for (const EdgeT& edge : mat_[i]) {
+    void searchBid(IdxT i, size_t start, size_t end, SearchResult& sr) {
+        for (size_t j = start; j != end; ++j) {
+            const EdgeT& edge = mat_[i][j];
             PriceT net_payoff = edge.second - p_[edge.first];
-            if (net_payoff > m) {
-                m = net_payoff;
-                best_item = edge.first;
+            if (net_payoff > sr.m) {
+                sr.m = net_payoff;
+                sr.best_item = edge.first;
             }
             else {
-                m2 = std::max(net_payoff, m2);
+                sr.m2 = std::max(net_payoff, sr.m2);
             }
         }
-        assert(best_item >= 0);
+        assert(sr.best_item >= 0);
+    }
+
+    void bid(IdxT i) {
+        SearchResult sr;
+        // searchBid(i, 0, mat_[i].size(), sr);
+        ioService_.post([i, &sr, this]{ searchBid(i, 0, mat_[i].size(), sr); });
+		thpool_.join_all();
 
         // update bid and reassign item
-        IdxT previous_owner = belong_[best_item];
+        IdxT previous_owner = belong_[sr.best_item];
         if (previous_owner != -1) {
             // if someone already owns the item, kick him/her out
             assign_[previous_owner] = -1;
             unassigned_.push(previous_owner);
         }
-        assign_[i] = best_item;
-        belong_[best_item] = i;
-        p_[best_item] += m - m2 + ep_;
+        assign_[i] = sr.best_item;
+        belong_[sr.best_item] = i;
+        p_[sr.best_item] += sr.m - sr.m2 + ep_;
     }
 
     void auction() {
@@ -88,6 +117,11 @@ public:
 
 private:
     Assignment() = delete;
+
+    int nthreads_;
+    boost::asio::io_service ioService_;
+    boost::thread_group thpool_;
+    boost::asio::io_service::work work_;
 
     // assign_[i] indicates the item assigned to person i
     // belong_[j] indicates the person to which item j belongs

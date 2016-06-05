@@ -46,7 +46,10 @@ public:
         for (IdxT i = 0; i != n_; ++i) {
             tabPrint(i);
             for (IdxT j = 0; j != n_; ++j) {
-                tabPrint(mat_[i][j]);
+                if (mat_[i][j] != -1)
+                    tabPrint(mat_[i][j]);
+                else
+                    tabPrint('-');
             }
             cout << endl;
         }
