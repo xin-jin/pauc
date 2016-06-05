@@ -75,13 +75,36 @@ public:
         assert(sr.best_item >= 0);
     }
 
-    void bid(IdxT i) {
+    SearchResult MergeSearchResults(const std::vector<SearchResult>& srv) {
         SearchResult sr;
-        // searchBid(i, 0, mat_[i].size(), sr);
-        thpool.schedule([this, i, end = mat_[i].size(), &sr]{
-                searchBid(i, 0, end, sr);
-            });
+
+        for (const auto& s : srv) {
+            if (s.m > sr.m) {
+                sr.m = s.m;
+                sr.best_item = s.best_item;
+            }
+            else if (s.m > sr.m2) {
+                sr.m2 = s.m;
+            }
+            if (s.m2 > sr.m2) {
+                sr.m2 = s.m2;
+            }
+        }
+        return sr;
+    }
+
+    void bid(IdxT i) {
+        std::vector<SearchResult> srv(thpool.size());
+        size_t p_size = n_ / thpool.size(); // partition size
+        for (int k = 0; k != thpool.size(); ++k) {
+            thpool.schedule([this, i, start = p_size * k,
+                             end = std::min(mat_[i].size(), p_size * (k+1)), &sr = srv[k]]{
+                                searchBid(i, start, end, sr);
+                            });
+        }
         thpool.wait();
+
+        SearchResult sr = MergeSearchResults(srv);
 
         // update bid and reassign item
         IdxT previous_owner = belong_[sr.best_item];
