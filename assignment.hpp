@@ -151,7 +151,11 @@ public:
         size_t start = 0;
         size_t end = p_size;
 
-        size_t worker_end = sim_id + nblock_;
+        // range of workers to use for bidder i
+        // some cases are a bit tricky here, for instance, if there are 10
+        // items and 7 workers, the first 5 workers would take all the work
+        // if p_size == 2
+        size_t worker_end = sim_id + (mat_[i].size() - 1) / p_size + 1;
 
         for (int worker_id = sim_id + 1; worker_id != worker_end; ++worker_id) {
             thpool_.schedule([this, i, start,
@@ -194,7 +198,10 @@ public:
         while (!unassigned_.empty()) {
             for (size_t k = 0; k != nsim_; ++k) {
                 mt_.lock();
-                if (unassigned_.empty()) break;
+                if (unassigned_.empty()) {
+                    mt_.unlock();
+                    break;
+                }
                 IdxT bidder = unassigned_.top();
                 unassigned_.pop();
                 mt_.unlock();
