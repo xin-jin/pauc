@@ -7,8 +7,7 @@
  * of child threads that exist solely to invoke previously scheduled thunks.
  */
 
-#ifndef _thread_pool_
-#define _thread_pool_
+#pragma once
 
 #include <cstddef>     // for size_t
 #include <functional>  // for the function template used in the schedule signature
@@ -18,26 +17,12 @@
 #include <stack>
 #include <condition_variable>
 
-using JobType = std::function<void(void)>;
 
-struct WorkerInfo {
-    bool working = false;
-    bool alive = false;                 // whether the worker has been spawned
-    std::mutex mt;
-    std::condition_variable cv;
-    JobType job;
-    std::thread th;
-};
-
-struct DispatcherInfo {
-    std::condition_variable cv_new_job;
-	std::condition_variable cv_available_worker;
-    std::thread th;
-};
 
 class ThreadPool {
 public:
-
+	using JobType = std::function<void(void)>;
+	
     /**
      * Constructs a ThreadPool configured to spawn up to the specified
      * number of threads.
@@ -58,6 +43,11 @@ public:
      */
     void wait();
 
+    /** Return the size of the pool */
+    int size() {
+        return kNumThreads;
+    }
+
     /**
      * Waits for all previously scheduled thunks to execute, then waits
      * for all threads to be be destroyed, and then otherwise brings
@@ -66,31 +56,16 @@ public:
     ~ThreadPool();
 
 private:
-
     const int kNumThreads;
-    std::thread dt;                // dispatcher thread handle
-    std::vector<std::thread> wts;  // worker thread handles
     std::queue<JobType> jq;        // queue of jobs
-    std::stack<int> available_workers;
-	std::mutex mt;
-    std::vector<WorkerInfo> worker_infos;
+    int nAvailable;                // number of available workers
     bool running;
-    DispatcherInfo d_info;
-    std::condition_variable cv_destructor;
+    std::vector<std::thread> workers;
+    std::mutex mt;                 // mutex protecting jq, nAvailable, and running
+    std::condition_variable cv, cv_wait;
 
-    /**
-     * ThreadPools are the type of thing that shouldn't be cloneable, since it's
-     * not clear what it means to clone a ThreadPool (should copies of all outstanding
-     * functions to be executed be copied?).
-     *
-     * In order to prevent cloning, we remove the copy constructor and the
-     * assignment operator.  By doing so, the compiler will ensure we never clone
-     * a ThreadPool.
-     */
     ThreadPool(const ThreadPool& original) = delete;
     ThreadPool& operator=(const ThreadPool& rhs) = delete;
-    void dispatcher();
-    void worker(size_t workerID);
+    void worker();
 };
 
-#endif

@@ -5,7 +5,7 @@
 struct Options {
     bool print_only = false;
     std::string filename = "graph.in";
-    int nthreads;
+    size_t nthreads;
 };
 
 void parseArgumentList(int argc, char *argv[], Options& options) {

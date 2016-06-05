@@ -7,9 +7,11 @@
 #include <fstream>
 #include <iostream>
 #include <stack>
-#include <boost/asio/io_service.hpp>
-#include <boost/bind.hpp>
-#include <boost/thread/thread.hpp>
+// #include <boost/asio/io_service.hpp>
+// #include <boost/bind.hpp>
+// #include <boost/thread/thread.hpp>
+
+#include "thread-pool.hpp"
 
 using std::cout;
 using std::endl;
@@ -36,7 +38,7 @@ public:
         }
     };
 
-    Assignment(std::string filename, int nthreads = 1): nthreads_(nthreads), work_(ioService_) {
+    Assignment(std::string filename, size_t nthreads = 1): thpool(nthreads) {
         std::ifstream infile(filename);
 
         IdxT i, j, w;
@@ -56,17 +58,9 @@ public:
         }
 
         ep_ = 1.0/(n_+1);
-
-        // initialize threads
-        for (int i = 0; i != nthreads_; ++i) {
-            thpool_.create_thread([this]{ ioService_.run(); });
-        }
     }
 
-    ~Assignment() {
-        ioService_.stop();
-        thpool_.join_all();
-    }
+    ~Assignment() {}
 
     void searchBid(IdxT i, size_t start, size_t end, SearchResult& sr) {
         for (size_t j = start; j != end; ++j) {
@@ -85,9 +79,7 @@ public:
 
     void bid(IdxT i) {
         SearchResult sr;
-        // searchBid(i, 0, mat_[i].size(), sr);
-        ioService_.post([i, &sr, this]{ searchBid(i, 0, mat_[i].size(), sr); });
-		thpool_.join_all();
+        searchBid(i, 0, mat_[i].size(), sr);
 
         // update bid and reassign item
         IdxT previous_owner = belong_[sr.best_item];
@@ -118,10 +110,11 @@ public:
 private:
     Assignment() = delete;
 
-    int nthreads_;
-    boost::asio::io_service ioService_;
-    boost::thread_group thpool_;
-    boost::asio::io_service::work work_;
+    ThreadPool thpool;
+    // boost::asio::io_service ioService_;
+    // boost::thread_group thpool_;
+    // boost::asio::io_service::work work_;
+
 
     // assign_[i] indicates the item assigned to person i
     // belong_[j] indicates the person to which item j belongs
