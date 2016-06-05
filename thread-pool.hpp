@@ -21,8 +21,11 @@
 
 class ThreadPool {
 public:
-	using JobType = std::function<void(void)>;
-	
+    struct JobInfo {
+        std::function<void(void)> job;
+        bool done = true;
+    };
+
     /**
      * Constructs a ThreadPool configured to spawn up to the specified
      * number of threads.
@@ -35,13 +38,15 @@ public:
      * to be executed by one of the ThreadPool's threads as soon as
      * all previously scheduled thunks have been handled.
      */
-    void schedule(const std::function<void(void)>& thunk);
+    void schedule(const std::function<void(void)>& thunk, size_t worker_id);
+
+    void wait(size_t id);
 
     /**
      * Blocks and waits until all previously scheduled thunks
      * have been executed in full.
      */
-    void wait();
+    void wait_all();
 
     /** Return the size of the pool */
     int size() {
@@ -57,15 +62,14 @@ public:
 
 private:
     const int kNumThreads;
-    std::queue<JobType> jq;        // queue of jobs
-    int nAvailable;                // number of available workers
+    std::vector<JobInfo> jobs;   // vector of jobs
     bool running;
     std::vector<std::thread> workers;
-    std::mutex mt;                 // mutex protecting jq, nAvailable, and running
-    std::condition_variable cv, cv_wait;
+    std::mutex mt;              // mutex jobs, nAvailable, and running
+    std::condition_variable cv_wait;
+    std::vector<std::condition_variable> cvv;
 
     ThreadPool(const ThreadPool& original) = delete;
     ThreadPool& operator=(const ThreadPool& rhs) = delete;
-    void worker();
+    void worker(size_t ID);
 };
-

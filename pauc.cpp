@@ -5,7 +5,10 @@
 struct Options {
     bool print_only = false;
     std::string filename = "graph.in";
-    size_t nthreads = 1;
+    // # of people that simultaneously update bids
+    size_t nsim = 1;
+    // # of search blocks
+    size_t nblock = 1;
     // whether use Gauss-Seidel method
     bool gs = false;
     // if true, then don't print the output; this is mainly for
@@ -17,14 +20,14 @@ void parseArgumentList(int argc, char *argv[], Options& options) {
     struct option ops[] = {
         {"print-matrix", no_argument, NULL, 'p'},
         {"file", required_argument, NULL, 'f'},
-        {"threads", required_argument, NULL, 't'},
-        {"gs", no_argument, NULL, 'g'},
+        {"sim", required_argument, NULL, 's'},
+        {"block", no_argument, NULL, 'b'},
         {"no-print", no_argument, NULL, 'n'},
         {NULL, 0, NULL, 0},
     };
 
     while (true) {
-        int ch = getopt_long(argc, argv, "pf:t:gn", ops, NULL);
+        int ch = getopt_long(argc, argv, "pf:s:b:n", ops, NULL);
         if (ch == -1) break;
         switch (ch) {
         case 'p':
@@ -33,15 +36,17 @@ void parseArgumentList(int argc, char *argv[], Options& options) {
         case 'f':
             options.filename = optarg;
             break;
-        case 't':
-            options.nthreads = atoi(optarg);
+        case 's':
+            options.nsim = atoi(optarg);
             break;
+        case 'b':
+            options.nblock = atoi(optarg);
         case 'g':
             options.gs = true;
             break;
-		case 'n':
-			options.noprint = true;
-			break;
+        case 'n':
+            options.noprint = true;
+            break;
         default:
             cout << "Unrecognized or improperly supplied flag." << endl;
             exit(2);
@@ -59,16 +64,15 @@ int main(int argc, char *argv[]) {
     Options options;
     parseArgumentList(argc, argv, options);
 
-
     if (options.print_only) {
         PayoffMat pmat(options.filename);
         pmat.printMat();
         return 0;
     }
-    Assignment assignment(options.filename, options.nthreads);
+    Assignment assignment(options.filename, options.nsim, options.nblock);
     assignment.auction();
-	if (!options.noprint)
-		assignment.printAssignment();
+    if (!options.noprint)
+        assignment.printAssignment();
 
     return 0;
 }
