@@ -13,7 +13,6 @@ ThreadPool::ThreadPool(size_t numThreads) : kNumThreads(numThreads), nAvailable(
     }
 }
 
-
 void ThreadPool::schedule(const JobType& thunk) {
     std::lock_guard<std::mutex> lck(mt);
     jq.push(thunk);
@@ -27,16 +26,17 @@ void ThreadPool::worker() {
         while (running && jq.empty())
             cv.wait(lck);
 
-		if (!running) break;
+        if (!running) break;
 
         // acquire the job and execute it
-        auto &job = jq.front();
+        auto job = jq.front();
         jq.pop();
+        --nAvailable;
         lck.unlock();
         job();
 
         lck.lock();
-        --nAvailable;
+        ++nAvailable;
         lck.unlock();
 
         // notify wait() that nAvailable has changed
@@ -48,7 +48,7 @@ void ThreadPool::worker() {
 
 void ThreadPool::wait() {
     std::unique_lock<std::mutex> lck(mt);
-    while (nAvailable != kNumThreads) {
+    while (!jq.empty() || nAvailable != kNumThreads) {
         cv_wait.wait(lck);
     }
 }
