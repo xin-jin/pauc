@@ -5,7 +5,8 @@
 struct Options {
     bool print_only = false;
     std::string filename = "graph.in";
-    size_t nthreads;
+    size_t nthreads = 1;
+    bool gs = false;            // whether use Gauss-Seidel method
 };
 
 void parseArgumentList(int argc, char *argv[], Options& options) {
@@ -13,11 +14,12 @@ void parseArgumentList(int argc, char *argv[], Options& options) {
         {"print", no_argument, NULL, 'p'},
         {"file", required_argument, NULL, 'f'},
         {"threads", required_argument, NULL, 't'},
+        {"gs", no_argument, NULL, 'g'},
         {NULL, 0, NULL, 0},
     };
 
     while (true) {
-        int ch = getopt_long(argc, argv, "pf:t:", ops, NULL);
+        int ch = getopt_long(argc, argv, "pf:t:g", ops, NULL);
         if (ch == -1) break;
         switch (ch) {
         case 'p':
@@ -28,6 +30,9 @@ void parseArgumentList(int argc, char *argv[], Options& options) {
             break;
         case 't':
             options.nthreads = atoi(optarg);
+            break;
+        case 'g':
+            options.gs = true;
             break;
         default:
             cout << "Unrecognized or improperly supplied flag." << endl;
@@ -52,7 +57,7 @@ int main(int argc, char *argv[]) {
         pmat.printMat();
         return 0;
     }
-    Assignment assignment(options.filename);
+    Assignment assignment(options.filename, options.nthreads);
     assignment.auction();
     assignment.printAssignment();
 

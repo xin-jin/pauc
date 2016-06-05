@@ -28,15 +28,17 @@ public:
         PriceT m;
         PriceT m2;
         IdxT best_item;
+        IntT payoff;
 
         SearchResult() {
-            m = std::numeric_limits<PriceT>::min();
+            m = std::numeric_limits<PriceT>::lowest();
             m2 = m;
             best_item = -1;
         }
     };
 
-    Assignment(std::string filename, size_t nthreads = 1): thpool(nthreads) {
+    Assignment(std::string filename, size_t nthreads): thpool(nthreads) {
+        cout << thpool.size() << endl;
         std::ifstream infile(filename);
 
         IdxT i, j, w;
@@ -44,6 +46,7 @@ public:
         infile >> n_;
         belong_.resize(n_, -1);
         assign_.resize(n_, -1);
+        payoff_.resize(n_, -1);
         mat_.resize(n_);
         p_.resize(n_, 0);
 
@@ -65,8 +68,10 @@ public:
             const EdgeT& edge = mat_[i][j];
             PriceT net_payoff = edge.second - p_[edge.first];
             if (net_payoff > sr.m) {
+                sr.m2 = sr.m;
                 sr.m = net_payoff;
                 sr.best_item = edge.first;
+                sr.payoff = edge.second;
             }
             else {
                 sr.m2 = std::max(net_payoff, sr.m2);
@@ -80,27 +85,38 @@ public:
 
         for (const auto& s : srv) {
             if (s.m > sr.m) {
+                sr.m2 = sr.m;
                 sr.m = s.m;
                 sr.best_item = s.best_item;
+                sr.payoff = s.payoff;
+
+                if (s.m2 > sr.m2) {
+                    sr.m2 = s.m2;
+                }
             }
             else if (s.m > sr.m2) {
                 sr.m2 = s.m;
             }
-            if (s.m2 > sr.m2) {
-                sr.m2 = s.m2;
-            }
         }
+
         return sr;
     }
 
     void bid(IdxT i) {
-        std::vector<SearchResult> srv(thpool.size());
-        size_t p_size = n_ / thpool.size(); // partition size
-        for (int k = 0; k != thpool.size(); ++k) {
-            thpool.schedule([this, i, start = p_size * k,
-                             end = std::min(mat_[i].size(), p_size * (k+1)), &sr = srv[k]]{
+        size_t np = std::min(thpool.size(), n_);     // # of partitions
+        size_t p_size = (mat_[i].size()-1) / np + 1; // partition size
+        std::vector<SearchResult> srv(np);
+        size_t start = 0;
+        size_t end = p_size;
+
+        for (int k = 0; k != np; ++k) {
+            thpool.schedule([this, i, start,
+                             end, &sr = srv[k]]{
                                 searchBid(i, start, end, sr);
                             });
+            start = end;
+            end += p_size;
+            end = std::min(end, mat_[i].size());
         }
         thpool.wait();
 
@@ -115,6 +131,7 @@ public:
         }
         assign_[i] = sr.best_item;
         belong_[sr.best_item] = i;
+        payoff_[i] = sr.payoff;
         p_[sr.best_item] += sr.m - sr.m2 + ep_;
     }
 
@@ -127,9 +144,12 @@ public:
     }
 
     void printAssignment() {
+        double tp = 0;
         for (IdxT i = 0; i != n_; ++i) {
+            tp += payoff_[i];
             cout << i << " gets " << assign_[i] << endl;
         }
+        cout << "Total payoff is " << tp << endl;
     }
 
 private:
@@ -142,6 +162,7 @@ private:
     std::vector<IdxT> assign_, belong_;
     // the persons who are unassigned
     std::stack<IdxT> unassigned_;
+    std::vector<IntT> payoff_;
     PriceT ep_;
     IdxT n_;
     PVecT p_;

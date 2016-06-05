@@ -57,6 +57,8 @@ clean:
 	$(RM) -r $(DEPSDIR)
 	rm -f $(TP_LIB) $(TP_LIB_DEP) $(TP_LIB_OBJ)	
 	find . -name "*.o" -delete
+	find . -name "*.out" -delete
+	find . -name "*.in" -delete
 
 # Define rules that do not actually generate the corresponding file
 .PHONY: clean all
