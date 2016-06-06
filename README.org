@@ -46,7 +46,7 @@ So far, only edge specification of the graph is accepted: the first line of an i
 | Option | Argument   | Description                                                      |
 |--------+------------+------------------------------------------------------------------|
 | ~-f~   | ~<file>~   | Specify the name of the generated file. Default is ~./graph.in~. |
-| ~h~    | ~<high>~   | Specify the maximum payoff. Default is 100.                      |
+| ~-h~   | ~<high>~   | Specify the maximum payoff. Default is 100.                      |
 | ~-l~   | ~<low>~    | Specify the minimum payoff. Default is 1.                        |
 | ~-n~   | ~<number>~ | Specify the number of bidders/items. Default is 100.             |
 |--------+------------+------------------------------------------------------------------|
