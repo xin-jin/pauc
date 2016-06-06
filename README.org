@@ -1,5 +1,5 @@
 #+OPTIONS: toc:nil
-#+TITLE: @@html:<b>@@P@@html:</b>@@arallel @@html:<b>@@Auc@@html:</b>@@tion Algorithm
+#+TITLE: @@html:<u>@@P@@html:</u>@@arallel @@html:<u>@@Auc@@html:</u>@@tion Algorithm
 
 This is a C++ implementation of a hybrid (with both Gauss-Seidel and Jacobi components) parallel auction algorithm.
 
