@@ -24,6 +24,12 @@ ifeq ($(PROFILE), 1)
 	CXXFLAGS += -g -O0
 endif
 
+# use g++ instead
+ifeq ($(GCC), 1)
+	CXX = g++
+endif
+
+
 $(BINDIR)/$(TARGET): $(OBJECTS)	
 	    @$(LINKER) $@ $(LFLAGS) $(OBJECTS)
 	    @echo "Linking complete!"

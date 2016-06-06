@@ -1,1 +1,52 @@
-To be added soon!
+#+OPTIONS: toc:nil
+#+TITLE: @@html:<b>@@P@@html:</b>@@arallel @@html:<b>@@Auc@@html:</b>@@tion Algorithm
+
+This is a C++ implementation of a hybrid (with both Gauss-Seidel and Jacobi components) parallel auction algorithm.
+
+* Compile
+To compile, simply execute
+#+BEGIN_SRC sh
+make
+#+END_SRC
+By default, clang++ is used, and C++14 flag is turned on. To use g++ instead, you can do
+#+BEGIN_SRC sh
+make GCC=1
+#+END_SRC
+To turn on the debug flag ~-g~ :
+#+BEGIN_SRC sh
+make PROFILE=1
+#+END_SRC
+* Simple Usage
+This program uses the max-payoff formulation of the linear assignment problem. The min-cost formulation can be easily adapted.
+#+BEGIN_SRC sh
+bin/pauc [options]
+#+END_SRC
+All options are optinal:
+| Option | Full Name        | Argument   | Description                                                                                                   |
+|--------+------------------+------------+---------------------------------------------------------------------------------------------------------------|
+| ~-b~   | ~--block~        | ~<nblock>~ | Specify the number of partitions/blocks to use for the Gauss-Seidel component. Default is 1.                  |
+| ~-f~   | ~--file~         | ~<file>~   | Specify the input file. Default is ~./graph.in~.                                                              |
+| ~-i~   | ~--summary~      |            | The output will only be a summary without the full specification of theh optimal assignment.                  |
+| ~-n~   | ~--no-print~     |            | No output will be produced, and this also suppresses the ~-i~ option.                                         |
+| ~-p~   | ~--print-matrix~ |            | Print the full payoff matrix. Disallowed pair is denoted by ~-~.                                              |
+| ~-s~   | ~--sim~          | ~<nsim>~   | Specify the number of bidders to simultaneously update on one iteration (the Jacobi component). Default is 1. |
+|--------+------------------+------------+---------------------------------------------------------------------------------------------------------------|
+
+So far, only edge specification of the graph is accepted: the first line of an input file is ~n~, the number of bidders/items; each of the following lines is of the form ~i j a~, which means the payoff of ~j~ to ~i~ is ~a~. All edges not present are assumed to be disallowed. See ~test/graph.in0~ for an example. Also see the next section for a way to generate a random graph. 
+
+# - ~-b, --block <nblock>~ : 
+# - ~-f, --file <file>~ :    Specify the input file. Default is ~./graph.in~.
+# - ~-i, --summary~ : The output will only be a summary without the full specification of theh optimal assignment.
+# - ~-n, --no-print~ : No output will be produced, and this also suppresses the ~-i~ option.
+# - ~-p, --print-matrix~ : Print the full payoff matrix. Disallowed pair is denoted by ~-~.
+# - ~-s, --sim <nsim>~ : Specify the number of bidders to simultaneously update on one iteration (the Jacobi component). Default is 1.
+
+* Test Scripts
+~test/genGraph.py~ generates a fully dense graph, with each (integer) payoff drawn uniformly from ~<low>~ to ~<high>~. All options are optional:
+| Option | Argument   | Description                                                      |
+|--------+------------+------------------------------------------------------------------|
+| ~-f~   | ~<file>~   | Specify the name of the generated file. Default is ~./graph.in~. |
+| ~h~    | ~<high>~   | Specify the maximum payoff. Default is 100.                      |
+| ~-l~   | ~<low>~    | Specify the minimum payoff. Default is 1.                        |
+| ~-n~   | ~<number>~ | Specify the number of bidders/items. Default is 100.             |
+|--------+------------+------------------------------------------------------------------|

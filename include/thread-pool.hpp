@@ -62,7 +62,7 @@ public:
     ~ThreadPool();
 
 private:
-    const int kNumThreads;
+    const size_t kNumThreads;
     std::vector<JobInfo> jobs;   // vector of jobs
     bool running;
     std::vector<std::thread> workers;

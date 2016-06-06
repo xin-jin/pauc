@@ -1,6 +1,6 @@
 #include "include/assignment.hpp"
 
-Assignment::Assignment(std::string filename, size_t nsim, size_t nblock): thpool_(nsim*nblock), nsim_(nsim), nblock_(nblock) {
+Assignment::Assignment(std::string filename, size_t nsim, size_t nblock): thpool_(nsim*nblock), nsim_(nsim), nblock_(nblock), niter_(0) {
     std::ifstream infile(filename);
 
     IdxT i, j, w;
@@ -28,7 +28,7 @@ Assignment::Assignment(std::string filename, size_t nsim, size_t nblock): thpool
 
     ep_ = 1.0/(n_+1);
 
-	infile.close();
+    infile.close();
 }
 
 void Assignment::searchBid(IdxT i, size_t start, size_t end, SearchResult& sr, std::mutex& mt_sr) {
@@ -53,8 +53,8 @@ void Assignment::searchBid(IdxT i, size_t start, size_t end, SearchResult& sr, s
     }
 
 
-	// incorporate the info from this partition to the overall SearchResult
-	// represented by sr
+    // incorporate the info from this partition to the overall SearchResult
+    // represented by sr
     mt_sr.lock();
     if (tmp_sr.m > sr.m) {
         if (sr.m > tmp_sr.m2) {
@@ -106,7 +106,7 @@ void Assignment::searchBid(IdxT i, size_t start, size_t end, SearchResult& sr, s
 
 void Assignment::bid(IdxT i, size_t sim_id) {
     size_t p_size = (mat_[i].size()-1) / nblock_ + 1;  // partition size
-    SearchResult sr;								   // store the overall search result for bidder i
+    SearchResult sr;                                   // store the overall search result for bidder i
     std::mutex mt_sr;
     size_t start = 0;
     size_t end = p_size;
@@ -117,7 +117,7 @@ void Assignment::bid(IdxT i, size_t sim_id) {
     // if p_size == 2
     size_t worker_end = sim_id + (mat_[i].size() - 1) / p_size + 1;
 
-    for (int worker_id = sim_id + 1; worker_id != worker_end; ++worker_id) {
+    for (size_t worker_id = sim_id + 1; worker_id != worker_end; ++worker_id) {
         thpool_.schedule([this, i, start,
                           end, &sr, &mt_sr]{
                              searchBid(i, start, end, sr, mt_sr);
@@ -129,7 +129,7 @@ void Assignment::bid(IdxT i, size_t sim_id) {
     // this thread searches the rest
     searchBid(i, start, mat_[i].size(), sr, mt_sr);
 
-    for (int worker_id = sim_id + 1; worker_id != worker_end; ++worker_id) {
+    for (size_t worker_id = sim_id + 1; worker_id != worker_end; ++worker_id) {
         thpool_.wait(worker_id);
     }
 
@@ -156,6 +156,7 @@ void Assignment::bid(IdxT i, size_t sim_id) {
 
 void Assignment::auction() {
     while (!unassigned_.empty()) {
+        ++niter_;
         for (size_t k = 0; k != nsim_; ++k) {
             mt_.lock();
             if (unassigned_.empty()) {
@@ -179,11 +180,13 @@ void Assignment::auction() {
     }
 }
 
-void Assignment::printAssignment() {
+void Assignment::printAssignment(bool summary_only) {
     double tp = 0;
     for (IdxT i = 0; i != n_; ++i) {
         tp += payoff_[i];
-        cout << i << " gets " << assign_[i] << endl;
+        if (!summary_only)
+            cout << i << " gets " << assign_[i] << endl;
     }
     cout << "Total payoff is " << tp << endl;
+    cout << "The algorithm takes a total of " << niter_ << " iterations." << endl;
 }

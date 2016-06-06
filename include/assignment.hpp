@@ -32,21 +32,18 @@ public:
         IntT payoff;
         IntT second_payoff;
 
-        SearchResult() {
-            m = std::numeric_limits<PriceT>::lowest();
-            m2 = m;
-            best_item = -1;
-            second_item = -1;
-        }
+        SearchResult(): m(std::numeric_limits<PriceT>::lowest()),
+                        m2(m), best_item(-1), second_item(-1),
+                        payoff(0), second_payoff(0) {}
     };
 
     Assignment(std::string filename, size_t nsim, size_t nblock);
     ~Assignment() {}
 
-	/** Run the auction algorithm */
+    /** Run the auction algorithm */
     void auction();
-	/** Print the final results */
-    void printAssignment();
+    /** Print the final results */
+    void printAssignment(bool summary_only);
 private:
     Assignment() = delete;
 
@@ -69,4 +66,6 @@ private:
     IdxT n_;
     PVecT p_;
     MatT mat_;
+
+    size_t niter_;              // records the number of itereations
 };
