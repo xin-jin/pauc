@@ -27,6 +27,8 @@ Assignment::Assignment(std::string filename, size_t nsim, size_t nblock): thpool
     }
 
     ep_ = 1.0/(n_+1);
+
+	infile.close();
 }
 
 void Assignment::searchBid(IdxT i, size_t start, size_t end, SearchResult& sr, std::mutex& mt_sr) {
@@ -49,9 +51,10 @@ void Assignment::searchBid(IdxT i, size_t start, size_t end, SearchResult& sr, s
             tmp_sr.second_payoff = edge.second;
         }
     }
-    assert(tmp_sr.m >= tmp_sr.m2);
-    assert(tmp_sr.best_item >= 0);
 
+
+	// incorporate the info from this partition to the overall SearchResult
+	// represented by sr
     mt_sr.lock();
     if (tmp_sr.m > sr.m) {
         if (sr.m > tmp_sr.m2) {
@@ -75,7 +78,6 @@ void Assignment::searchBid(IdxT i, size_t start, size_t end, SearchResult& sr, s
             sr.second_payoff = tmp_sr.payoff;
         }
     }
-    assert(sr.m >= sr.m2);
     mt_sr.unlock();
 }
 
@@ -104,7 +106,7 @@ void Assignment::searchBid(IdxT i, size_t start, size_t end, SearchResult& sr, s
 
 void Assignment::bid(IdxT i, size_t sim_id) {
     size_t p_size = (mat_[i].size()-1) / nblock_ + 1;  // partition size
-    SearchResult sr;
+    SearchResult sr;								   // store the overall search result for bidder i
     std::mutex mt_sr;
     size_t start = 0;
     size_t end = p_size;

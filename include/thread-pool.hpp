@@ -1,10 +1,9 @@
 /**
- * File: thread-pool.h
+ * File: thread-pool.hpp
  * -------------------
- * This class defines the ThreadPool class, which accepts a collection
- * of thunks (which are zero-argument functions that don't return a value)
- * and schedules them in a FIFO manner to be executed by a constant number
- * of child threads that exist solely to invoke previously scheduled thunks.
+ * A thread-pool class modified for the assignment problem. It's designed
+ * to work with problems where each task can specifically specify which
+ * worker to use, different from the traditional job-queue implementation
  */
 
 #pragma once
@@ -40,6 +39,8 @@ public:
      */
     void schedule(const std::function<void(void)>& thunk, size_t worker_id);
 
+
+	/** Waits for worker with id to finish */
     void wait(size_t id);
 
     /**

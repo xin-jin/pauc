@@ -43,7 +43,9 @@ public:
     Assignment(std::string filename, size_t nsim, size_t nblock);
     ~Assignment() {}
 
+	/** Run the auction algorithm */
     void auction();
+	/** Print the final results */
     void printAssignment();
 private:
     Assignment() = delete;

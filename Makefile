@@ -2,7 +2,7 @@ TARGET   = pauc
 
 CXX       = clang++
 # compiling flags here
-CXXFLAGS   = -g -std=c++14 -Wall -I.
+CXXFLAGS  = -O3 -std=c++14 -Wall -I.
 
 LINKER   = $(CXX) -o
 # linking flags here
@@ -19,6 +19,10 @@ INCLUDES := $(wildcard $(INCDIR)/*.hpp)
 OBJECTS  := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 rm       = rm -f
 
+# useful for debugging and profiling
+ifeq ($(PROFILE), 1)
+	CXXFLAGS += -g -O0
+endif
 
 $(BINDIR)/$(TARGET): $(OBJECTS)	
 	    @$(LINKER) $@ $(LFLAGS) $(OBJECTS)

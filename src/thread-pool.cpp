@@ -17,7 +17,7 @@ void ThreadPool::schedule(const std::function<void(void)>& thunk, size_t worker_
     std::lock_guard<std::mutex> lck(mt);
     jobs[worker_id].job = thunk;
     jobs[worker_id].done = false;
-    cvv[worker_id].notify_one();
+    cvv[worker_id].notify_all();
 }
 
 void ThreadPool::worker(size_t id) {
