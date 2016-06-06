@@ -34,6 +34,26 @@ All options are optinal:
 
 So far, only edge specification of the graph is accepted: the first line of an input file is ~n~, the number of bidders/items; each of the following lines is of the form ~i j a~, which means the payoff of ~j~ to ~i~ is ~a~. All edges not present are assumed to be disallowed. See ~test/graph.in0~ for an example. Also see the next section for a way to generate a random graph. 
 
+Example usage:
+#+BEGIN_SRC sh
+bin/pauc -f test/graph.in0
+#+END_SRC
+which will generate
+#+BEGIN_SRC sh
+0 gets 7
+1 gets 2
+2 gets 0
+3 gets 1
+4 gets 8
+5 gets 6
+6 gets 9
+7 gets 5
+8 gets 4
+9 gets 3
+Total payoff is 873
+The algorithm takes a total of 21 iterations.
+#+END_SRC
+
 # - ~-b, --block <nblock>~ : 
 # - ~-f, --file <file>~ :    Specify the input file. Default is ~./graph.in~.
 # - ~-i, --summary~ : The output will only be a summary without the full specification of theh optimal assignment.

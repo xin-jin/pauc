@@ -16,13 +16,13 @@ public:
     using MatT = std::vector<std::vector<IntT>>;
 
     PayoffMat(std::string filename);
-    void printMat();
+    void printMat() const;
 	
 private:
     PayoffMat() = delete;
 
     template <typename T>
-    inline void tabPrint(T dat, int width = 8);
+    inline void tabPrint(T dat, int width = 8) const;
 
     IdxT n_;
     MatT mat_;

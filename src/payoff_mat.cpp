@@ -19,11 +19,11 @@ PayoffMat::PayoffMat(std::string filename) {
 }
 
 template <typename T>
-void PayoffMat::tabPrint(T dat, int width) {
+void PayoffMat::tabPrint(T dat, int width) const {
     cout << std::left << std::setw(width) << std::setfill(' ') << dat;
 }
 
-void PayoffMat::printMat() {
+void PayoffMat::printMat() const {
     tabPrint('/');
     for (IdxT i = 0; i != n_; ++i) {
         tabPrint(i);

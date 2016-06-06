@@ -180,7 +180,7 @@ void Assignment::auction() {
     }
 }
 
-void Assignment::printAssignment(bool summary_only) {
+void Assignment::printAssignment(bool summary_only) const {
     double tp = 0;
     for (IdxT i = 0; i != n_; ++i) {
         tp += payoff_[i];

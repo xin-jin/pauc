@@ -43,7 +43,7 @@ public:
     /** Run the auction algorithm */
     void auction();
     /** Print the final results */
-    void printAssignment(bool summary_only);
+    void printAssignment(bool summary_only) const ;
 private:
     Assignment() = delete;
 
