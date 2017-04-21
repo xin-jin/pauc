@@ -1,7 +1,7 @@
 #+OPTIONS: toc:nil
 #+TITLE: @@html:<u>@@P@@html:</u>@@arallel @@html:<u>@@Auc@@html:</u>@@tion Algorithm
 
-This is a C++ implementation of a hybrid (with both Gauss-Seidel and Jacobi components) parallel auction algorithm. [[http://stanford.edu/~rezab/dao/projects_reports/jin.pdf][Click here for the report of the project]].
+This is a C++ implementation of a hybrid (with both Gauss-Seidel and Jacobi components) parallel auction algorithm. [[http://stanford.edu/~rezab/classes/cme323/S16/projects_reports/jin.pdf][Click here for the report of the project]].
 
 * Compile
 To compile, simply execute
